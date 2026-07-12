@@ -10,6 +10,18 @@ from training.lightning_module import LightningModule as _BaseModule
 from finetuning.loveda import CLASS_NAMES, IGNORE_IDX, PALETTE
 
 
+def _savefig(fig, save_path):
+    """Save figure creating parent folders as needed."""
+    if save_path is None:
+        return
+    from pathlib import Path
+
+    path = Path(save_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    print(f"Figura salvata in {path}")
+
+
 def colorize(mask: torch.Tensor) -> np.ndarray:
     """(H,W) long con classi 0..6 e 255=ignore -> immagine RGB uint8."""
     mask = mask.cpu().numpy()
@@ -76,9 +88,7 @@ def show_samples(imgs, targets, preds_by_name=None, figsize_per_cell=3.2, save_p
     )
     plt.tight_layout()
 
-    if save_path is not None:
-        fig.savefig(save_path, dpi=150, bbox_inches="tight")
-        print(f"Figura salvata in {save_path}")
+    _savefig(fig, save_path)
 
     plt.show()
     
@@ -88,11 +98,17 @@ def plot_training_curves(run_name, log_root="lightning_logs", save_path=None):
     import pandas as pd
     from pathlib import Path
 
+    # skip aborted runs (version dirs without a metrics.csv)
     versions = sorted(
-        Path(log_root, run_name).glob("version_*"), key=lambda p: p.stat().st_mtime
+        (
+            p
+            for p in Path(log_root, run_name).glob("version_*")
+            if (p / "metrics.csv").exists()
+        ),
+        key=lambda p: p.stat().st_mtime,
     )
     if not versions:
-        raise FileNotFoundError(f"No runs found in {log_root}/{run_name}")
+        raise FileNotFoundError(f"No runs with metrics.csv in {log_root}/{run_name}")
     metrics = pd.read_csv(versions[-1] / "metrics.csv")
 
     loss_col = next((c for c in metrics.columns if "train_loss_total" in c), None)
@@ -117,9 +133,7 @@ def plot_training_curves(run_name, log_root="lightning_logs", save_path=None):
     fig.suptitle(run_name)
     plt.tight_layout()
 
-    if save_path is not None:
-        fig.savefig(save_path, dpi=150, bbox_inches="tight")
-        print(f"Figura salvata in {save_path}")
+    _savefig(fig, save_path)
 
     plt.show()
     return metrics
