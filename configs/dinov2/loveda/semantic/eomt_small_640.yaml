@@ -1,0 +1,45 @@
+# fine tuning of eomt-s (dinov2) on loveda semantic segmentation.
+#
+# calculation of steps (for annealing/warmup):
+#   ~2522 train images / batch 4  = ~630 batch/epoch
+#   630 / 4 (accumulation)        = ~157 optimizer step/epoch
+#   24 epoches                    = ~3780 step totali
+
+trainer:
+  max_epochs: 24
+  accumulate_grad_batches: 4
+  log_every_n_steps: 10
+  logger:
+    class_path: lightning.pytorch.loggers.CSVLogger
+    init_args:
+      save_dir: "lightning_logs"
+      name: "loveda_semantic_eomt_small_640"
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        monitor: "metrics/val_iou_all"
+        mode: max
+        save_last: true
+        filename: "best-{epoch:02d}"
+model:
+  class_path: finetuning.semantic_module.MaskClassificationSemanticLocal
+  init_args:
+    attn_mask_annealing_enabled: True
+    attn_mask_annealing_start_steps: [700, 1400, 2100]
+    attn_mask_annealing_end_steps: [1400, 2100, 2800]
+    warmup_steps: [200, 400]
+    network:
+      class_path: models.eomt.EoMT
+      init_args:
+        num_q: 200
+        num_blocks: 3
+        encoder:
+          class_path: models.vit.ViT
+          init_args:
+            backbone_name: vit_small_patch14_reg4_dinov2
+data:
+  class_path: datasets.loveda_semantic.LoveDASemantic
+  init_args:
+    batch_size: 4
+    num_workers: 4
+    img_size: [640, 640]
