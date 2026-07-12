@@ -127,6 +127,38 @@ def evaluate_on_loveda(network: EoMT,datamodule,class_mapping: torch.Tensor = No
     return results
 
 
+@torch.no_grad()
+def compute_confusion_matrix(network: EoMT, datamodule, class_mapping: torch.Tensor = None, input_size: tuple[int, int] = (640, 640), device: str = "cuda", amp: bool = True, max_batches: int = None) -> torch.Tensor:
+    """Confusion matrix on LoveDA val (rows = GT, cols = prediction)."""
+    from torchmetrics.classification import MulticlassConfusionMatrix
+
+    network = network.to(device).eval()
+    metric = MulticlassConfusionMatrix(
+        num_classes=NUM_CLASSES,
+        ignore_index=IGNORE_IDX,
+        normalize="true",
+        validate_args=False,
+    ).to(device)
+
+    loader = datamodule.val_dataloader()
+    for batch_idx, (imgs, targets) in enumerate(loader):
+        if max_batches is not None and batch_idx >= max_batches:
+            break
+
+        imgs = torch.stack(list(imgs)).to(device)
+        target = torch.stack(
+            _BaseModule.to_per_pixel_targets_semantic(list(targets), IGNORE_IDX)
+        ).to(device)
+
+        preds = predict(network, imgs, class_mapping, input_size, amp)
+        metric.update(preds, target)
+
+        if batch_idx % 50 == 0:
+            print(f"  batch {batch_idx}/{len(loader)}", end="\r")
+
+    return metric.compute().cpu()
+
+
 def save_results(results: dict, path):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
