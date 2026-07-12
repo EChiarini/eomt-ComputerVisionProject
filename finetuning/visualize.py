@@ -81,3 +81,108 @@ def show_samples(imgs, targets, preds_by_name=None, figsize_per_cell=3.2, save_p
         print(f"Figura salvata in {save_path}")
 
     plt.show()
+    
+    
+def plot_training_curves(run_name, log_root="lightning_logs", save_path=None):
+    """Plot train loss and validation mIoU from the CSVLogger metrics.csv"""
+    import pandas as pd
+    from pathlib import Path
+
+    versions = sorted(
+        Path(log_root, run_name).glob("version_*"), key=lambda p: p.stat().st_mtime
+    )
+    if not versions:
+        raise FileNotFoundError(f"No runs found in {log_root}/{run_name}")
+    metrics = pd.read_csv(versions[-1] / "metrics.csv")
+
+    loss_col = next((c for c in metrics.columns if "train_loss_total" in c), None)
+    iou_col = next(
+        (c for c in metrics.columns if "val_iou_all" in c and "block" not in c), None
+    )
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+    if loss_col is not None:
+        loss = metrics.dropna(subset=[loss_col])
+        axes[0].plot(loss["step"], loss[loss_col])
+    axes[0].set(xlabel="step", ylabel="loss totale", title="Training loss")
+    axes[0].grid(alpha=0.3)
+
+    if iou_col is not None:
+        val = metrics.dropna(subset=[iou_col])
+        axes[1].plot(val["epoch"], val[iou_col] * 100, marker="o")
+    axes[1].set(xlabel="epoca", ylabel="mIoU (%)", title="Validation mIoU")
+    axes[1].grid(alpha=0.3)
+
+    fig.suptitle(run_name)
+    plt.tight_layout()
+
+    if save_path is not None:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+        print(f"Figura salvata in {save_path}")
+
+    plt.show()
+    return metrics
+
+
+def plot_confusion_matrix(cm, title="Confusion Matrix (rows = GT)", save_path=None):
+    """cm: (7,7) row-normalized tensor from evaluator.compute_confusion_matrix."""
+    cm = cm.numpy() if hasattr(cm, "numpy") else np.asarray(cm)
+
+    fig, ax = plt.subplots(figsize=(6.8, 5.6))
+    im = ax.imshow(cm, cmap="Blues", vmin=0, vmax=1)
+
+    ax.set_xticks(range(len(CLASS_NAMES)))
+    ax.set_xticklabels(CLASS_NAMES, rotation=45, ha="right")
+    ax.set_yticks(range(len(CLASS_NAMES)))
+    ax.set_yticklabels(CLASS_NAMES)
+    ax.set_xlabel("Prediction")
+    ax.set_ylabel("Ground truth")
+    ax.set_title(title)
+
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            v = float(cm[i, j])
+            ax.text(
+                j, i, f"{v:.2f}",
+                ha="center", va="center", fontsize=8,
+                color="white" if v > 0.5 else "black",
+            )
+
+    fig.colorbar(im, ax=ax, fraction=0.046)
+    plt.tight_layout()
+
+    if save_path is not None:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+        print(f"Figure saved in {save_path}")
+
+    plt.show()
+
+
+def plot_comparison_bars(results_by_name: dict, save_path=None):
+    """Bar chart for each class: one bar for each model in results_by_name."""
+    names = list(results_by_name.keys())
+    n_models = len(names)
+    x = np.arange(len(CLASS_NAMES))
+    width = 0.8 / n_models
+
+    fig, ax = plt.subplots(figsize=(10, 4.5))
+    for i, name in enumerate(names):
+        ious = [
+            results_by_name[name]["iou_per_class"][cls] * 100 for cls in CLASS_NAMES
+        ]
+        ax.bar(x + (i - (n_models - 1) / 2) * width, ious, width, label=name)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(CLASS_NAMES, rotation=20)
+    ax.set_ylabel("IoU (%)")
+    ax.set_title("IoU per class on LoveDA val")
+    ax.legend()
+    ax.grid(axis="y", alpha=0.3)
+    plt.tight_layout()
+
+    if save_path is not None:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+        print(f"Figure saved in {save_path}")
+
+    plt.show()
