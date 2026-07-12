@@ -6,4 +6,4 @@
 #   download    - download of the dataset and the checkpoint
 #   evaluator   - model construction, weight loading, mIoU evaluation
 #   visualize   - qualitative visualizations (GT vs predictions)
-#   semantic_module - previews on disk
+#   semantic_module - save previews
