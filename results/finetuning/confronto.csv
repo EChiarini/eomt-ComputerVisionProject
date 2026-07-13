@@ -1,0 +1,9 @@
+,"Generic (COCO, zero-shot)",Fine-tuned (COCO → LoveDA),Fine-tuned (only DINOv2),delta (FT − generic)
+background,25.25,55.84,55.26,30.59
+building,34.51,65.76,66.56,31.25
+road,24.87,56.96,57.94,32.09
+water,36.39,70.9,70.81,34.51
+barren,12.68,37.47,36.8,24.79
+forest,23.91,42.87,40.75,18.96
+agriculture,5.55,62.92,64.4,57.37
+— mIoU —,23.307834565639496,56.10378980636597,56.07473850250244,32.8

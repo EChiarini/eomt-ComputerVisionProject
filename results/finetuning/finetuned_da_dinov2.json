@@ -1,0 +1,15 @@
+{
+  "miou": 0.5607473850250244,
+  "iou_per_class": {
+    "background": 0.5526479482650757,
+    "building": 0.6656121015548706,
+    "road": 0.5793923139572144,
+    "water": 0.7080809473991394,
+    "barren": 0.36803290247917175,
+    "forest": 0.4074505567550659,
+    "agriculture": 0.6440147161483765
+  },
+  "eval_seconds": 62.8,
+  "num_batches": 826,
+  "checkpoint": "lightning_logs\\loveda_ft_da_dinov2\\version_0\\checkpoints\\best-epoch=16.ckpt"
+}
