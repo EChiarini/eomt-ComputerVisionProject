@@ -10,9 +10,9 @@ from finetuning.visualize import colorize
 
 
 class MaskClassificationSemanticLocal(MaskClassificationSemantic):
-    """per-epoch validation preview is saved as a PNG in results/val_previews/."""
+    """per-epoch validation preview is saved as a PNG in results/finetuning/val_previews/."""
 
-    preview_dir = Path("results/val_previews")
+    preview_dir = Path("results/finetuning/val_previews")
 
     @torch.compiler.disable
     def plot_semantic(self, img, target, logits, log_prefix, block_idx, batch_idx, cmap="tab20"):
