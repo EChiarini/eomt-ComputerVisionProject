@@ -9,3 +9,8 @@ wandb/
 
 data/
 checkpoints/
+
+# training log dumps e config uv locale (non-condivisi)
+logs_*.txt
+pyproject.toml
+eomt/

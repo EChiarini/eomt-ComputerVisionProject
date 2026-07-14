@@ -1,0 +1,52 @@
+# Studente EoMT-Tiny su LoveDA, SENZA distillazione (baseline per l'ablation).
+# Backbone: ViT-Tiny pre-addestrato ImageNet (non esiste DINOv2-Tiny).
+#
+# Schedule: 2522 immagini train / batch 4 = 630 step/epoca; 20 epoche = 12600 step.
+# Annealing staggerato sui 3 blocchi L2 con le stesse frazioni della config
+# eomt_small_640_2x (start ~[17%, 42%, 67%], end ~[33%, 58%, 83%] del training).
+trainer:
+  max_epochs: 20
+  check_val_every_n_epoch: 4
+  logger:
+    class_path: lightning.pytorch.loggers.wandb.WandbLogger
+    init_args:
+      resume: allow
+      project: "eomt"
+      name: "loveda_semantic_eomt_tiny_640_baseline"
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.ModelSummary
+      init_args:
+        max_depth: 3
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: epoch
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        monitor: metrics/val_iou_all
+        mode: max
+        save_top_k: 1
+        save_last: true
+        filename: "best-{epoch:02d}"
+        auto_insert_metric_name: false
+model:
+  class_path: training.mask_classification_semantic.MaskClassificationSemantic
+  init_args:
+    attn_mask_annealing_enabled: True
+    attn_mask_annealing_start_steps: [2100, 5250, 8400]
+    attn_mask_annealing_end_steps: [4200, 7350, 10500]
+    network:
+      class_path: models.eomt.EoMT
+      init_args:
+        num_q: 100
+        num_blocks: 3
+        encoder:
+          class_path: models.vit.ViT
+          init_args:
+            backbone_name: vit_tiny_patch16_224.augreg_in21k_ft_in1k
+            patch_size: 16
+data:
+  class_path: datasets.loveda_semantic.LoveDASemantic
+  init_args:
+    path: data/loveda
+    batch_size: 4
+    num_workers: 4
