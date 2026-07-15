@@ -54,16 +54,46 @@ python main.py fit -c configs/dinov2/loveda/semantic/eomt_tiny_640.yaml --compil
 python main.py fit -c configs/dinov2/loveda/semantic/eomt_tiny_640_distill.yaml --compile_disabled
 ```
 
-## What we added vs. upstream
+## What we added vs. the original EoMT repo
 
+Everything below is new; every other file is the unmodified official EoMT codebase.
+
+**Shared — LoveDA dataset**
 ```
-finetuning/            experiment 1: notebooks + evaluation/visualization package
-datasets/loveda_semantic.py        LoveDA DataModule (zip-based, Urban+Rural)
-training/mask_classification_semantic_distill.py   experiment 2: KD loss
-configs/dinov2/loveda/             configs for fine-tuning and distillation
+datasets/loveda_semantic.py                LoveDA DataModule (zip-based, Urban+Rural)
 ```
 
-Everything else (models, training pipeline, loss) is the unmodified official EoMT codebase.
+**Part 1 — Fine-tuning**
+```
+configs/dinov2/loveda/semantic/eomt_small_640.yaml   fine-tuning config
+finetuning/
+  0_Setup.ipynb  1_Baseline_Generico.ipynb           notebooks (run in order)
+  2_FineTuning.ipynb  3_Confronto.ipynb
+  loveda.py          dataset constants (classes, palette, URLs)
+  coco_classes.py    COCO->LoveDA class mapping for the zero-shot baseline
+  download.py        dataset + checkpoint download
+  evaluator.py       model build, weight loading, mIoU + confusion matrix
+  visualize.py       curves, per-class bars, confusion matrix, qualitatives
+  semantic_module.py training subclass that saves previews to disk (no wandb)
+```
+
+**Part 2 — Knowledge distillation**
+```
+configs/dinov2/loveda/semantic/eomt_tiny_640.yaml          student baseline config
+configs/dinov2/loveda/semantic/eomt_tiny_640_distill.yaml   student + distillation config
+distillation/
+  mask_classification_semantic_distill.py    KD LightningModule (teacher + KL loss)
+  mask_classification_semantic_distill.ipynb  training notebook
+  compare_models.py  distill_graphs.py  qualitative_comparison.py   analysis scripts
+```
+
+**Results & misc**
+```
+results/finetuning/     Part 1 metrics, figures, per-epoch previews
+results/distillation/   Part 2 metrics and figures
+.python-version         pinned Python for the project venv
+```
+Modified from upstream: `README.md`, `.gitignore`, `model_zoo/dinov2.md`.
 
 ## Credits
 
