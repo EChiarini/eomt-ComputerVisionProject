@@ -33,7 +33,7 @@ trainer:
         filename: "best-{epoch:02d}"
         auto_insert_metric_name: false
 model:
-  class_path: training.mask_classification_semantic_distill.MaskClassificationSemanticDistill
+  class_path: distillation.mask_classification_semantic_distill.MaskClassificationSemanticDistill
   init_args:
     attn_mask_annealing_enabled: True
     attn_mask_annealing_start_steps: [2100, 5250, 8400]

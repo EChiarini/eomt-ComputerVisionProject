@@ -13,7 +13,7 @@
 # ASSOLUTO no. Uso consigliato: riportare nel report solo i rapporti (Nx).
 #
 # Uso (va lanciato come modulo, altrimenti "models" non si importa):
-#   uv run --no-project python -m finetuning.compare_models
+#   uv run --no-project python -m distillation.compare_models
 #
 # Per aggiungere/modificare i modelli da confrontare, modifica il dict MODELS
 # in fondo al file (es. quando arriva il checkpoint reale di Russo, o se

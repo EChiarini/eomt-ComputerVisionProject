@@ -8,7 +8,7 @@
 #   - 1 immagine dove il distillato va peggio (caso negativo, per onesta').
 #
 # Uso:
-#   uv run --no-project python -m finetuning.qualitative_comparison
+#   uv run --no-project python -m distillation.qualitative_comparison
 #
 # Output: docs/figures/confronto_qualitativo.png + statistiche a terminale.
 
@@ -29,7 +29,7 @@ SCAN_N = 300  # quante immagini val scansionare per la selezione
 TEACHER_CKPT = "checkpoints/loveda_ft_eomt_small_640_best.bin"
 BASELINE_CKPT = "eomt/413yl1ap/checkpoints/epoch=19-step=12520.ckpt"
 DISTILL_CKPT = "eomt/cju4qzzo/checkpoints/best-19.ckpt"
-OUT_PATH = Path("docs/figures/confronto_qualitativo.png")
+OUT_PATH = Path("results/distillation/confronto_qualitativo.png")
 
 
 def load_state_into(network: torch.nn.Module, ckpt_path: str):
